@@ -1,36 +1,148 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Instagram Downloader
 
-## Getting Started
+Ứng dụng web để tải xuống ảnh và video từ Instagram một cách dễ dàng.
 
-First, run the development server:
+## Tính năng
+
+- ✅ **Hỗ trợ đầy đủ tất cả định dạng Instagram:**
+  - Posts (`/p/`) - Bài đăng thông thường
+  - Reels (`/reel/`) - Video ngắn
+  - IGTV (`/tv/`) - Video dài
+- ✅ **Tải xuống đa phương tiện:**
+  - Ảnh chất lượng cao
+  - Video với âm thanh
+  - Posts có nhiều ảnh/video
+- ✅ **Hỗ trợ đa dạng format URL:**
+  - Với/không có `www`
+  - Với/không có username trong URL
+  - Với/không có trailing slash
+  - Với/không có query parameters
+- ✅ Giao diện đẹp và dễ sử dụng
+- ✅ Validation URL Instagram thông minh
+- ✅ Xử lý lỗi chi tiết và thông báo rõ ràng
+- ✅ Responsive design cho mọi thiết bị
+- ✅ Loading states và feedback trực quan
+
+## Cách sử dụng
+
+1. Mở ứng dụng tại [http://localhost:3000](http://localhost:3000)
+2. Sao chép link Instagram (hỗ trợ tất cả định dạng):
+   - **Posts**: `https://www.instagram.com/p/ABC123/`
+   - **Reels**: `https://www.instagram.com/reel/ABC123/`
+   - **IGTV**: `https://www.instagram.com/tv/ABC123/`
+   - **Với username**: `https://www.instagram.com/username/p/ABC123/`
+3. Dán link vào ô input
+4. Nhấn nút "Tải xuống"
+5. Chọn ảnh/video muốn tải và nhấn nút tải xuống tương ứng
+
+## Cài đặt và chạy
+
+### Yêu cầu hệ thống
+- Node.js 18+ hoặc Bun
+- NPM, Yarn, PNPM hoặc Bun
+
+### Cài đặt dependencies
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+bun install
+# hoặc
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Chạy development server
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+bun dev
+# hoặc
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Mở [http://localhost:3000](http://localhost:3000) để xem ứng dụng.
 
-## Learn More
+### Build cho production
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+bun run build
+# hoặc
+npm run build
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Chạy production server
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+bun start
+# hoặc
+npm start
+```
 
-## Deploy on Vercel
+## Công nghệ sử dụng
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Next.js 15** - React framework
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Styling
+- **Axios** - HTTP client
+- **Cheerio** - HTML parsing
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Cấu trúc dự án
+
+```
+src/
+├── app/
+│   ├── api/
+│   │   ├── instagram/
+│   │   │   └── route.ts      # API xử lý Instagram URLs
+│   │   └── download/
+│   │       └── route.ts      # API proxy download media
+│   ├── components/
+│   │   └── InstagramDownloader.tsx  # Component chính
+│   ├── globals.css
+│   ├── layout.tsx
+│   └── page.tsx              # Trang chủ
+```
+
+## API Endpoints
+
+### POST /api/instagram
+Xử lý Instagram URL và trả về thông tin media
+
+**Request:**
+```json
+{
+  "url": "https://www.instagram.com/p/ABC123/"
+}
+```
+
+**Response:**
+```json
+{
+  "media": [
+    {
+      "type": "image",
+      "url": "https://...",
+      "thumbnail": "https://..."
+    }
+  ],
+  "caption": "Caption text",
+  "username": "username"
+}
+```
+
+### GET /api/download
+Proxy để tải media từ Instagram
+
+**Query Parameters:**
+- `url`: URL của media cần tải
+
+## Lưu ý
+
+- Ứng dụng chỉ hoạt động với các bài post Instagram công khai
+- Một số bài post có thể không tải được do hạn chế của Instagram
+- Ứng dụng tuân thủ các điều khoản sử dụng của Instagram
+
+## Đóng góp
+
+Mọi đóng góp đều được chào đón! Vui lòng tạo issue hoặc pull request.
+
+## License
+
+MIT License
