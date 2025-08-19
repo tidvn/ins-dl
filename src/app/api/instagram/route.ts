@@ -8,10 +8,42 @@ interface InstagramMedia {
   thumbnail?: string;
 }
 
-interface InstagramPost {
-  media: InstagramMedia[];
+interface GraphQLNode {
+  is_video: boolean;
+  video_url?: string;
+  display_url: string;
+}
+
+interface GraphQLEdge {
+  node: GraphQLNode;
+}
+
+interface GraphQLData {
+  edge_sidecar_to_children?: {
+    edges: GraphQLEdge[];
+  };
+  is_video: boolean;
+  video_url?: string;
+  display_url: string;
+  edge_media_to_caption?: {
+    edges: Array<{
+      node: {
+        text: string;
+      };
+    }>;
+  };
+  owner?: {
+    username: string;
+  };
+}
+
+interface JSONLDData {
+  '@type': string;
+  contentUrl?: string;
   caption?: string;
-  username?: string;
+  author?: {
+    alternateName: string;
+  };
 }
 
 export async function POST(request: NextRequest) {
@@ -67,7 +99,7 @@ export async function POST(request: NextRequest) {
         const postData = response.data.graphql.shortcode_media;
         return extractMediaFromGraphQL(postData);
       }
-    } catch (error) {
+    } catch {
       console.log('JSON method failed, trying HTML scraping...');
     }
 
@@ -92,34 +124,35 @@ export async function POST(request: NextRequest) {
     
     // Try to extract from script tags containing JSON data
     const scriptTags = $('script[type="application/ld+json"]');
-    let postData = null;
+    let postData: JSONLDData | null = null;
 
     scriptTags.each((_, element) => {
       try {
-        const jsonData = JSON.parse($(element).html() || '');
+        const jsonData = JSON.parse($(element).html() || '') as JSONLDData;
         if (jsonData && jsonData['@type'] === 'ImageObject') {
           postData = jsonData;
           return false; // break the loop
         }
-      } catch (e) {
+      } catch {
         // Continue to next script tag
       }
     });
 
-    if (postData) {
+    if (postData !== null) {
       const media: InstagramMedia[] = [];
-      
-      if (postData.contentUrl) {
+      const validPostData = postData as JSONLDData;
+
+      if (validPostData.contentUrl) {
         media.push({
           type: 'image',
-          url: postData.contentUrl
+          url: validPostData.contentUrl
         });
       }
 
       return NextResponse.json({
         media,
-        caption: postData.caption || '',
-        username: postData.author?.alternateName || ''
+        caption: validPostData.caption || '',
+        username: validPostData.author?.alternateName || ''
       });
     }
 
@@ -164,14 +197,14 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function extractMediaFromGraphQL(postData: any): NextResponse {
+function extractMediaFromGraphQL(postData: GraphQLData): NextResponse {
   const media: InstagramMedia[] = [];
   
   if (postData.edge_sidecar_to_children) {
     // Multiple media post
-    postData.edge_sidecar_to_children.edges.forEach((edge: any) => {
+    postData.edge_sidecar_to_children.edges.forEach((edge: GraphQLEdge) => {
       const node = edge.node;
-      if (node.is_video) {
+      if (node.is_video && node.video_url) {
         media.push({
           type: 'video',
           url: node.video_url,
@@ -186,7 +219,7 @@ function extractMediaFromGraphQL(postData: any): NextResponse {
     });
   } else {
     // Single media post
-    if (postData.is_video) {
+    if (postData.is_video && postData.video_url) {
       media.push({
         type: 'video',
         url: postData.video_url,

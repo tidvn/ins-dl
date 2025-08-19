@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import InstagramDownloader from './components/InstagramDownloader';
 
 export default function Home() {
